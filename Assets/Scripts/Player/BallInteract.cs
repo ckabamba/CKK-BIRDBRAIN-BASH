@@ -66,7 +66,7 @@ public class BallInteract : MonoBehaviour
     }
 
     // If the player is near the ball
-    public bool IsPlayerNearBall()
+    private bool IsPlayerNearBall()
     {
         if (ball == null) return false;
         
