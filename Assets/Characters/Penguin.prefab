@@ -13,8 +13,6 @@ GameObject:
   - component: {fileID: 1596495973196653865}
   - component: {fileID: 8521965719503099404}
   - component: {fileID: 189763753370555248}
-  - component: {fileID: 9669403310179835}
-  - component: {fileID: 8549713741747506414}
   - component: {fileID: 2179847074991214835}
   - component: {fileID: 5339363692880780012}
   - component: {fileID: 5503641869623287145}
@@ -145,43 +143,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
---- !u!114 &9669403310179835
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3175117971104434883}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3bd2834d7138ea44b9eeb436d77161d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxGroundSpeed: 4
-  maxAirSpeed: 2
-  jumpForce: 6
-  rotationSpeed: 10
-  grounded: 0
-  overrideRotation: 0
-  targetRotation: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &8549713741747506414
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3175117971104434883}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62a52fa449ea78c439b417bf12bbb9f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
-  onLeft: 0
-  ballManager: {fileID: 0}
-  interactionRadius: 2
-  spikeStat: 0
-  birdType: 0
 --- !u!114 &2179847074991214835
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,6 +160,7 @@ MonoBehaviour:
   dashSpeed: 10
   rotationSpeed: 8
   penguinHeight: 0
+  gameManager: {fileID: 0}
   isDashing: 0
 --- !u!198 &5339363692880780012
 ParticleSystem:

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,36 +7,77 @@ public class MultiplayerManager : MonoBehaviour
     public InputActionAsset inputActions;
 
     [Header("Player Transforms")]
-    public Transform player1SpawnPoint;
-    public Transform player2SpawnPoint;
-    public Transform player3SpawnPoint;
-    public Transform player4SpawnPoint;
+    public Transform[] playerSpawnpoints;
 
     [Header("Player Prefabs")]
-    [SerializeField] private GameObject player1Prefab;
-    [SerializeField] private GameObject player2Prefab;
-    [SerializeField] private GameObject player3Prefab;
-    [SerializeField] private GameObject player4Prefab;
+    [SerializeField] private GameObject keyboardPrefab;
+
+    HashSet<InputDevice> inputDevices = new HashSet<InputDevice>();
 
     void Awake()
     {
-        // TODO: Initialize player prefabs
+        // Initialize player 1 on keyboard and mouse
+        PlayerInput.Instantiate(
+            keyboardPrefab,
+            controlScheme: "Keyboard&Mouse",
+            pairWithDevice: Keyboard.current
+        );
+    }
+
+    public void OnPlayerJoined(PlayerInput player)
+    {
+        // Potential trigger of multiple joins from same device check
+        if (player.devices.Count == 0)
+        {
+            Debug.Log("Destroying weird player join trigger.");
+            Destroy(player.gameObject);
+            return;
+        }
         
-        // Spawn in players
-        GameObject player1 = Instantiate(player1Prefab, player1SpawnPoint.transform.position, player1SpawnPoint.transform.rotation);
-        player1.AddComponent<PlayerInput>();
-        player1.GetComponent<PlayerInput>().actions = inputActions;
 
-        GameObject player2 = Instantiate(player2Prefab, player2SpawnPoint.transform.position, player2SpawnPoint.transform.rotation);
-        player2.AddComponent<PlayerInput>();
-        player2.GetComponent<PlayerInput>().actions = inputActions;
+        // If this device already in use, do not create duplicate player
+        if (inputDevices.Contains(player.devices[0]))
+        {
+            Debug.Log("Destroying player trying to join");
+            Destroy(player.gameObject);
+            return;
+        }
 
-        // GameObject player3 = Instantiate(player3Prefab, player3SpawnPoint.transform.position, player3SpawnPoint.transform.rotation);
-        // player3.AddComponent<PlayerInput>();
-        // player3.GetComponent<PlayerInput>().actions = inputActions;
+        
+        // Add this input device to the set of devices and make a player for them
+        inputDevices.Add(player.devices[0]);
+        MakePlayer(player.gameObject);
+        Debug.Log($"Player {player.playerIndex + 1} joined with {player.devices[0]}");
+    }
 
-        // GameObject player4 = Instantiate(player4Prefab, player4SpawnPoint.transform.position, player4SpawnPoint.transform.rotation);
-        // player4.AddComponent<PlayerInput>();
-        // player4.GetComponent<PlayerInput>().actions = inputActions;
+    public void OnPlayerLeave(PlayerInput player)
+    {
+        // If this player doesn't actually exist, skip
+        if (player.devices.Count == 0 || !inputDevices.Contains(player.devices[0]))
+        {
+            return;
+        }
+
+        // Destroy the player
+        Destroy(player.gameObject);
+        inputDevices.Remove(player.devices[0]);
+    }
+
+    void MakePlayer(GameObject player)
+    {
+        // Add new character movement script
+        CharacterMovement characterMovement = player.AddComponent<CharacterMovement>();
+
+        // Set the desired fields for the character movement
+        characterMovement.maxGroundSpeed = 4.0f;
+        characterMovement.maxAirSpeed = characterMovement.maxGroundSpeed / 2;
+        characterMovement.jumpForce = 6.0f;
+        characterMovement.controlMovement(true, true);
+
+        // Move player to their spawnpoint
+        player.transform.position = playerSpawnpoints[inputDevices.Count - 1].position;
+        player.transform.name = "Player " + inputDevices.Count;
+
+        // TODO: Add ball interact stuff
     }
 }
