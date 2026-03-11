@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+    using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
@@ -59,13 +59,23 @@ public class CharacterSelectManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // make sure lists are sized correctly
+        // If the previous menu passed player/input data use it; otherwise use defaults
+        if (DataTransferManager.isKBMInput != null && DataTransferManager.isKBMInput.Count > 0)
+        {
+            numberOfPlayers = Mathf.Clamp(DataTransferManager.isKBMInput.Count, 1, 4);
+            isKBMInput = new List<bool>(DataTransferManager.isKBMInput);
+        }
+        else
+        {
+            // ensure transfer lists exist so other code can reference them
+            if (DataTransferManager.isKBMInput == null) DataTransferManager.isKBMInput = new List<bool>();
+            if (DataTransferManager.selectedBirds == null) DataTransferManager.selectedBirds = new List<BirdType>();
+        }
+
+        // make sure internal lists are sized correctly
         ResizePlayerLists(numberOfPlayers);
 
-        // reset shared transfer data so nothing from a previous run sticks around
-        DataTransferManager.isKBMInput = new List<bool>();
-        DataTransferManager.selectedBirds = new List<BirdType>();
-
+        // Setup input state for each player, prefer the transferred input scheme where available
         SetupPlayerInputStates();
     }
 
@@ -105,23 +115,34 @@ public class CharacterSelectManager : MonoBehaviour
     private void SetupPlayerInputStates()
     {
         playerInputStates.Clear();
-
-        // Player 0: Keyboard & Mouse
-        playerInputStates.Add(new PlayerInputState(0, true, Keyboard.current));
-
-        // Players 1-3: Gamepads
-        int gamepadIndex = 0;
-        for (int i = 1; i < numberOfPlayers; ++i)
+        // If transfer manager provided an input scheme, use that
+        if (DataTransferManager.isKBMInput != null && DataTransferManager.isKBMInput.Count == numberOfPlayers)
         {
-            if (gamepadIndex < Gamepad.all.Count)
+            int gamepadIndex = 0;
+            for (int i = 0; i < numberOfPlayers; ++i)
             {
-                playerInputStates.Add(new PlayerInputState(i, false, Gamepad.all[gamepadIndex]));
-                gamepadIndex++;
+                bool kbm = DataTransferManager.isKBMInput[i];
+                InputDevice dev = kbm ? (InputDevice)Keyboard.current : (gamepadIndex < Gamepad.all.Count ? (InputDevice)Gamepad.all[gamepadIndex++] : null);
+                playerInputStates.Add(new PlayerInputState(i, kbm, dev));
             }
-        }
 
-        isKBMInput.Clear();
-        foreach (var state in playerInputStates) isKBMInput.Add(state.isKBM);
+            isKBMInput = new List<bool>(DataTransferManager.isKBMInput);
+        }
+        else
+        {
+            // Default: first player KBM, others gamepads if present
+            playerInputStates.Add(new PlayerInputState(0, true, Keyboard.current));
+
+            int gamepadIndex = 0;
+            for (int i = 1; i < numberOfPlayers; ++i)
+            {
+                InputDevice dev = gamepadIndex < Gamepad.all.Count ? (InputDevice)Gamepad.all[gamepadIndex++] : null;
+                playerInputStates.Add(new PlayerInputState(i, false, dev));
+            }
+
+            isKBMInput.Clear();
+            foreach (var state in playerInputStates) isKBMInput.Add(state.isKBM);
+        }
     }
 
     // Create a cursor for each player. (CURSOR PREFABS ARE NEEEDED)
